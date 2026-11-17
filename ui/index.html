@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Termilal</title>
+  <link rel="stylesheet" href="vendor/bundle.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="brand" data-tauri-drag-region>
+        <span class="brand-dot"></span>TERMINAL&nbsp;VELOCITY
+      </div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M11.7 10.3l3.4 3.4-1.4 1.4-3.4-3.4a6 6 0 1 1 1.4-1.4zM6 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+        <input id="search" type="search" placeholder="Cerca host… (⌘K)" autocomplete="off">
+      </div>
+      <nav id="hostList"></nav>
+      <div class="sidebar-footer">
+        <button id="btnNewHost" class="icon-btn" title="Nuovo host (⌘N)">
+          <svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button id="btnSnippets" class="icon-btn" title="Snippet">
+          <svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M2 4h12v1.5H2zM2 7.3h9v1.5H2zM2 10.6h11v1.5H2z"/></svg>
+        </button>
+        <button id="btnPing" class="icon-btn" title="Controlla stato host">
+          <svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.3 5.7l-4 4a.75.75 0 0 1-1.06 0l-2-2 1.06-1.06L6.7 9.04l3.47-3.47z"/></svg>
+        </button>
+        <div class="spacer"></div>
+        <button id="btnSettings" class="icon-btn" title="Impostazioni">
+          <svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M8 10.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm5.9-2.5a5.9 5.9 0 0 1-.07.93l1.47 1.15-1.5 2.6-1.73-.7a5.9 5.9 0 0 1-1.6.93L10.2 14.5H5.8l-.27-1.59a5.9 5.9 0 0 1-1.6-.93l-1.73.7-1.5-2.6L2.17 8.93A5.9 5.9 0 0 1 2.1 8c0-.32.03-.62.07-.93L.7 5.92l1.5-2.6 1.73.7a5.9 5.9 0 0 1 1.6-.93L5.8 1.5h4.4l.27 1.59a5.9 5.9 0 0 1 1.6.93l1.73-.7 1.5 2.6-1.47 1.15c.04.31.07.61.07.93z"/></svg>
+        </button>
+        <div class="dropdown" id="ioDropdown">
+          <button id="btnIO" class="icon-btn" title="Importa/Esporta">
+            <svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M8 1.5v8.6L4.9 7 3.8 8.2 8 12.3l4.2-4.2L11 7 8.7 9.3V1.5zM2 14h12v-1.5H2z"/></svg>
+          </button>
+          <div class="dropdown-menu" id="ioMenu">
+            <button data-action="ssh-config">Importa da ~/.ssh/config</button>
+            <button data-action="known-hosts">Importa da known_hosts</button>
+            <button data-action="edit-config">Modifica ~/.ssh/config…</button>
+            <div class="menu-sep"></div>
+            <button data-action="import">Importa file (JSON/CSV)…</button>
+            <button data-action="export">Esporta JSON…</button>
+            <div class="menu-sep"></div>
+            <button data-action="known-manager">Gestisci known_hosts…</button>
+            <button data-action="logs">Apri cartella log</button>
+            <button data-action="restore">Ripristina backup</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main id="main">
+      <div id="tabbar-wrap">
+        <div id="tabbar"></div>
+        <div id="tabtools">
+          <button id="btnSplit" class="tabtool hidden" title="Dividi vista"><svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 2h12v12H2zM8 2v12"/></svg></button>
+          <button id="btnBroadcast" class="tabtool hidden" title="Broadcast a tutte le sessioni"><svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M8 8v6M8 8L3 3.5M8 8l5-4.5"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg></button>
+          <button id="btnSrv" class="tabtool hidden" title="Pannello server"><svg viewBox="0 0 16 16" width="14" height="14"><rect x="2" y="2" width="12" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9.5" width="12" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="4.7" cy="4.2" r=".9" fill="currentColor"/><circle cx="4.7" cy="11.7" r=".9" fill="currentColor"/></svg></button>
+          <button id="btnSftp" class="tabtool hidden" title="SFTP"><svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M5 1v11m0 0l-3-3m3 3l3-3M11 15V4m0 0l-3 3m3-3l3 3"/></svg></button>
+          <button id="btnFind" class="tabtool hidden" title="Cerca nel terminale (⌘F)"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M10.5 10.5L14 14"/></svg></button>
+          <button id="btnExport" class="tabtool hidden" title="Esporta sessione"><svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M8 2v8M5 7l3 3 3-3M3 13h10"/></svg></button>
+        </div>
+      </div>
+      <div id="findbar" class="hidden">
+        <input id="findInput" placeholder="Cerca nel terminale…" autocomplete="off">
+        <button id="findPrev" title="Precedente">▲</button>
+        <button id="findNext" title="Successivo">▼</button>
+        <button id="findClose" title="Chiudi">✕</button>
+      </div>
+      <div id="terminals"></div>
+      <div id="empty">
+        <div class="empty-inner">
+          <div class="empty-logo"> _____                   _             _
+|_   _|__ _ __ _ __ ___ (_)_ __   __ _| |
+  | |/ _ \ '__| '_ ` _ \| | '_ \ / _` | |
+  | |  __/ |  | | | | | | | | | | (_| | |
+  |_|\___|_|  |_| |_| |_|_|_| |_|\__,_|_|
+ __     __   _            _ _
+ \ \   / /__| | ___   ___(_) |_ _   _
+  \ \ / / _ \ |/ _ \ / __| | __| | | |
+   \ V /  __/ | (_) | (__| | |_| |_| |
+    \_/ \___|_|\___/ \___|_|\__|\__, |
+                                |___/</div>
+          <div class="boot">[ OK ] pty subsystem ready
+[ OK ] keychain link established
+[ .. ] awaiting target host</div>
+          <p>Seleziona un host dalla sidebar, premi ⌘K per connetterti, oppure creane uno nuovo.</p>
+          <button class="btn primary" id="emptyNewHost">Nuovo host</button>
+        </div>
+      </div>
+      <footer id="statusbar" class="hidden">
+        <span id="sbInfo"></span>
+        <span class="spacer"></span>
+        <span id="sbLatency"></span>
+        <span id="sbTime"></span>
+      </footer>
+      <div id="overlay" class="hidden">
+        <div class="overlay-card">
+          <div id="overlayIcon" class="overlay-icon"></div>
+          <div id="overlayText"></div>
+          <div class="overlay-actions hidden" id="overlayActions">
+            <button class="btn primary" id="overlayReconnect">Riconnetti</button>
+            <button class="btn" id="overlayClose">Chiudi sessione</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modale host -->
+  <div id="hostModal" class="modal hidden">
+    <div class="modal-card wide">
+      <h2 id="hostModalTitle">Nuovo host</h2>
+      <div class="form-grid">
+        <label>Nome<input id="f_name" placeholder="Server produzione"></label>
+        <label>Hostname / IP<input id="f_hostname" placeholder="203.0.113.10"></label>
+        <label>Porta<input id="f_port" type="number" value="22"></label>
+        <label>Username<input id="f_username" placeholder="root"></label>
+        <label class="span2">Jump host <input id="f_jump" placeholder="opzionale: user@gw:22"></label>
+        <label class="span2">Metodo di autenticazione
+          <select id="f_auth">
+            <option value="agent">SSH Agent / chiavi di default</option>
+            <option value="key">Chiave privata</option>
+            <option value="password">Password</option>
+          </select>
+        </label>
+        <label class="span2" id="rowKey">Chiave privata<input id="f_keypath" placeholder="~/.ssh/id_ed25519"></label>
+        <label class="span2" id="rowPwd"><span id="pwdLabel">Password</span><input id="f_password" type="password" placeholder="(se vuota, ssh la chiede nel terminale)"></label>
+        <label class="span2">Argomenti ssh extra<input id="f_extra" placeholder="-o UserKnownHostsFile=~/.ssh/known_hosts"></label>
+        <label class="span2">Port forwarding <textarea id="f_forwards" rows="2" class="mono" placeholder="L 8080:localhost:80&#10;R 9090:localhost:9090&#10;D 1080"></textarea></label>
+        <label class="span2">Script di login <textarea id="f_loginscript" rows="2" class="mono" placeholder="cd /var/www&#10;htop"></textarea></label>
+        <label>Gruppo<input id="f_group" placeholder="es. clienti/produzione"></label>
+        <label>Tag<input id="f_tags" placeholder="virgola-separati"></label>
+        <label class="span2">Note<input id="f_notes" placeholder="Note libere"></label>
+        <label>Tema
+          <select id="f_theme">
+            <option value="">(globale)</option>
+          </select>
+        </label>
+        <span></span>
+        <label class="check"><input id="f_keepalive" type="checkbox" checked> Keep-alive (ServerAliveInterval)</label>
+        <label class="check"><input id="f_favorite" type="checkbox"> Preferito</label>
+        <label class="check"><input id="f_reconnect" type="checkbox"> Riconnetti automaticamente</label>
+        <label class="check"><input id="f_mosh" type="checkbox"> Mosh (mobile shell)</label>
+        <label class="span2">Port knocking <input id="f_knock" placeholder="opzionale: 7000,8000,9000"></label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="hostTest">Test connessione</button>
+        <span id="testResult"></span>
+        <div class="spacer"></div>
+        <button class="btn" id="hostCancel">Annulla</button>
+        <button class="btn primary" id="hostSave">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale snippet -->
+  <div id="snippetModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Snippet</h2>
+      <div class="snippet-hint">Variabili: {host} {user} {port} {name} {date}</div>
+      <div id="snippetList" class="snippet-list"></div>
+      <div class="snippet-form">
+        <input id="s_title" placeholder="Titolo">
+        <input id="s_group" placeholder="Gruppo (opz.)">
+        <input id="s_command" placeholder="Comando" class="mono">
+        <button class="btn" id="snippetAdd">Aggiungi</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="snippetClose">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale impostazioni -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Impostazioni</h2>
+      <div class="form-grid">
+        <label class="span2">Tema terminale
+          <select id="st_theme"></select>
+        </label>
+        <label class="check"><input id="st_copy" type="checkbox"> Copia automatica alla selezione</label>
+        <label class="check"><input id="st_paste" type="checkbox"> Incolla col tasto destro</label>
+        <label class="check"><input id="st_log" type="checkbox"> Log delle sessioni su file</label>
+        <label class="check"><input id="st_notify" type="checkbox"> Notifica alla disconnessione</label>
+        <label class="check"><input id="st_lock" type="checkbox"> Blocco all'avvio (Touch ID)</label>
+        <label>Auto-lock dopo inattività
+          <select id="st_locktimeout">
+            <option value="0">Mai</option>
+            <option value="5">5 minuti</option>
+            <option value="10">10 minuti</option>
+            <option value="30">30 minuti</option>
+          </select>
+        </label>
+        <label>Dimensione font terminale
+          <input id="st_fontsize" type="number" min="9" max="24" value="13">
+        </label>
+        <label>Luminosità fosforo
+          <select id="st_bright">
+            <option value="1">Standard</option>
+            <option value="2">Luminosa</option>
+            <option value="3">Massima</option>
+          </select>
+        </label>
+        <div class="span2">
+          <div class="section-title">Tema per gruppo</div>
+          <div id="stGroupThemes"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="settingsLockNow">Blocca ora</button>
+        <button class="btn primary" id="settingsSave">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale editor ~/.ssh/config -->
+  <div id="sshConfigModal" class="modal hidden">
+    <div class="modal-card wide">
+      <h2>~/.ssh/config</h2>
+      <textarea id="sshConfigText" class="mono" rows="18" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button class="btn" id="sshConfigCancel">Annulla</button>
+        <button class="btn primary" id="sshConfigSave">Salva (backup automatico)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pannello server -->
+  <div id="srvModal" class="modal hidden">
+    <div class="modal-card srv-card">
+      <h2>SERVER — <span id="srvHostName"></span></h2>
+      <div class="srv-tabs">
+        <button class="srv-tab active" data-tab="health">Salute</button>
+        <button class="srv-tab" data-tab="services">Servizi</button>
+        <button class="srv-tab" data-tab="fail2ban">Fail2ban</button>
+        <button class="srv-tab" data-tab="domains">Domini</button>
+        <button class="srv-tab" data-tab="wp">WordPress</button>
+        <button class="srv-tab" data-tab="logs">Log</button>
+        <div class="spacer"></div>
+        <button class="btn small danger" id="srvPowerOff" title="Spegni il server">⏻</button>
+        <button class="btn small" id="srvReboot" title="Riavvia il server">↺</button>
+        <button class="btn small" id="srvRefresh">↻</button>
+      </div>
+      <div class="srv-body">
+        <div id="srv-health" class="srv-pane"></div>
+        <div id="srv-services" class="srv-pane hidden"></div>
+        <div id="srv-fail2ban" class="srv-pane hidden"></div>
+        <div id="srv-domains" class="srv-pane hidden">
+          <div id="srvDomList"></div>
+          <button class="btn small" id="srvDomNew">+ Nuovo dominio</button>
+          <div id="srvDomForm" class="hidden">
+            <div class="srv-dom-form">
+              <input id="srvDomName" class="mono" placeholder="dominio.com">
+              <select id="srvDomPlan"><option value="">(piano default)</option></select>
+              <input id="srvDomLogin" placeholder="utente sistema">
+              <input id="srvDomPass" type="password" placeholder="password">
+              <button class="btn small primary" id="srvDomCreate">Crea</button>
+            </div>
+          </div>
+        </div>
+        <div id="srv-wp" class="srv-pane hidden"></div>
+        <div id="srv-logs" class="srv-pane hidden">
+          <div class="srv-log-bar">
+            <select id="srvLogPath"></select>
+            <input id="srvLogCustom" class="mono hidden" placeholder="/percorso/file.log">
+            <select id="srvLogLines">
+              <option value="50">50 righe</option>
+              <option value="200" selected>200 righe</option>
+              <option value="1000">1000 righe</option>
+            </select>
+            <button class="btn small" id="srvLogLoad">Carica</button>
+          </div>
+          <pre id="srvLogOut" class="srv-log-out"></pre>
+        </div>
+      </div>
+      <div id="srvStatus" class="sftp-status"></div>
+      <div class="modal-actions">
+        <button class="btn" id="srvClose">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale SFTP -->
+  <div id="sftpModal" class="modal hidden">
+    <div class="modal-card sftp-card">
+      <h2>SFTP — <span id="sftpHostName"></span></h2>
+      <div class="sftp-bar">
+        <button class="btn small" id="sftpUp" title="Directory superiore">↑</button>
+        <input id="sftpPath" class="mono" spellcheck="false">
+        <button class="btn small" id="sftpGo">Vai</button>
+        <button class="btn small" id="sftpRefresh">↻</button>
+        <div class="spacer"></div>
+        <button class="btn small" id="sftpUpload">Upload…</button>
+        <button class="btn small" id="sftpMkdir">Nuova cartella</button>
+      </div>
+      <div id="sftpList" class="sftp-list"></div>
+      <div id="sftpStatus" class="sftp-status">Trascina file qui per caricarli</div>
+      <div class="modal-actions">
+        <button class="btn" id="sftpClose">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale known_hosts -->
+  <div id="khModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>known_hosts</h2>
+      <div class="snippet-hint">~/.ssh/known_hosts — chiavi accettate. Se un host cambia chiave, rimuovi la voce e riconnetti.</div>
+      <div id="khList" class="snippet-list"></div>
+      <div class="modal-actions">
+        <button class="btn" id="khClose">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick connect ⌘K -->
+  <div id="palette" class="hidden">
+    <div class="palette-card">
+      <input id="paletteInput" placeholder="Connetti a host…" autocomplete="off" spellcheck="false">
+      <div id="paletteList"></div>
+    </div>
+  </div>
+
+  <!-- Lock screen -->
+  <div id="lockScreen" class="hidden">
+    <div class="lock-card">
+      <div class="lock-logo"> _____                   _             _
+|_   _|__ _ __ _ __ ___ (_)_ __   __ _| |
+  | |/ _ \ '__| '_ ` _ \| | '_ \ / _` | |
+  | |  __/ |  | | | | | | | | | | (_| | |
+  |_|\___|_|  |_| |_| |_|_|_| |_|\__,_|_|
+        __     __   _            _ _
+        \ \   / /__| | ___   ___(_) |_ _   _
+         \ \ / / _ \ |/ _ \ / __| | __| | | |
+          \ V /  __/ | (_) | (__| | |_| |_| |
+           \_/ \___|_|\___/ \___|_|\__|\__, |
+                                       |___/</div>
+      <h1>Terminal Velocity</h1>
+      <p>// sessione bloccata //</p>
+      <button class="btn primary" id="btnUnlock">Sblocca con Touch ID</button>
+    </div>
+  </div>
+
+  <!-- Menu contestuale -->
+  <div id="ctxMenu" class="ctx-menu hidden">
+    <button data-action="connect">Connetti</button>
+    <button data-action="server">Pannello server…</button>
+    <button data-action="sftp">SFTP…</button>
+    <button data-action="tunnel" id="ctxTunnel">Avvia tunnel</button>
+    <div class="menu-sep"></div>
+    <button data-action="edit">Modifica…</button>
+    <button data-action="duplicate">Duplica</button>
+    <button data-action="favorite" id="ctxFavorite">Preferito</button>
+    <div class="menu-sep"></div>
+    <button data-action="delete" class="danger">Elimina</button>
+  </div>
+
+  <div id="crt"></div>
+  <script src="vendor/bundle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
